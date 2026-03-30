@@ -1,6 +1,8 @@
-﻿ID,Text,Comment
+ID,Text,Comment
 LV.MHA.AutoStart,"Auto-start",
 LV.MHA.AutoStartDesc,"Automatically start the API server when loading the game.
 You do not need a HTTP Adapter building if you enable this option.",
 LV.MHA.AutoStartPort,"Auto-start Port",
 LV.MHA.AutoStartPortDesc,"The port used for auto-starting the API server.",
+LV.MHA.AllowNetwork,"Allow Network Access",
+LV.MHA.AllowNetworkDesc,"Listen on all network interfaces so other devices on your LAN can connect. Requires running the game as administrator once, or running: netsh http add urlacl url=http://+:8080/ user=Everyone",

@@ -1,4 +1,4 @@
-﻿namespace MoreHttpApi.Services;
+namespace MoreHttpApi.Services;
 
 [BindSingleton(Contexts = BindAttributeContext.All)]
 public class MSettings(ISettings settings, ModSettingsOwnerRegistry modSettingsOwnerRegistry, ModRepository modRepository) : ModSettingsOwner(settings, modSettingsOwnerRegistry, modRepository)
@@ -15,10 +15,15 @@ public class MSettings(ISettings settings, ModSettingsOwnerRegistry modSettingsO
         .CreateLocalized("LV.MHA.AutoStartPort")
         .SetLocalizedTooltip("LV.MHA.AutoStartPortDesc"));
 
+    public ModSetting<bool> AllowNetworkAccess { get; } = new(false, ModSettingDescriptor
+        .CreateLocalized("LV.MHA.AllowNetwork")
+        .SetLocalizedTooltip("LV.MHA.AllowNetworkDesc"));
+
     public override void OnBeforeLoad()
     {
         base.OnBeforeLoad();
         AutoStartPort.Descriptor.SetEnableCondition(() => AutoStartApi.Value);
+        AllowNetworkAccess.Descriptor.SetEnableCondition(() => AutoStartApi.Value);
     }
 
 }
