@@ -1,86 +1,104 @@
 using System.Net.Sockets;
+using System.Threading;
 
 namespace MoreHttpApi.Services;
 
 public static class NetworkForwarder
 {
-    static TcpListener? _listener;
-    static CancellationTokenSource? _cts;
+    static TcpListener _listener;
+    static volatile bool _running;
 
-    public static void Start(ushort listenPort, ushort targetPort)
+    public static void Start(int listenPort, int targetPort)
     {
         Stop();
 
-        _cts = new CancellationTokenSource();
+        Debug.Log($"[MoreHttpApi] Starting network forwarder on port {listenPort} → localhost:{targetPort}...");
+
         _listener = new TcpListener(IPAddress.Any, listenPort);
         _listener.Start();
+        _running = true;
 
-        Debug.Log($"[MoreHttpApi] Network forwarder listening on 0.0.0.0:{listenPort} → localhost:{targetPort}");
+        Debug.Log($"[MoreHttpApi] Network forwarder ACTIVE on 0.0.0.0:{listenPort}");
 
-        Task.Run(() => AcceptLoop(_listener, targetPort, _cts.Token));
+        var thread = new Thread(() => AcceptLoop(listenPort, targetPort));
+        thread.IsBackground = true;
+        thread.Name = "MoreHttpApi-NetworkForwarder";
+        thread.Start();
     }
 
     public static void Stop()
     {
-        _cts?.Cancel();
-        _listener?.Stop();
+        _running = false;
+        try { _listener?.Stop(); } catch { }
         _listener = null;
-        _cts = null;
     }
 
-    static async Task AcceptLoop(TcpListener listener, ushort targetPort, CancellationToken ct)
+    static void AcceptLoop(int listenPort, int targetPort)
     {
-        while (!ct.IsCancellationRequested)
+        Debug.Log($"[MoreHttpApi] Accept loop started on port {listenPort}");
+        while (_running)
         {
+            TcpClient client = null;
             try
             {
-                var client = await listener.AcceptTcpClientAsync();
-                _ = Task.Run(() => ForwardConnection(client, targetPort, ct));
+                client = _listener.AcceptTcpClient();
+                Debug.Log($"[MoreHttpApi] Accepted connection from {client.Client.RemoteEndPoint}");
+                var c = client;
+                new Thread(() => Forward(c, targetPort)) { IsBackground = true }.Start();
             }
-            catch when (ct.IsCancellationRequested)
+            catch (SocketException) when (!_running)
             {
                 break;
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[MoreHttpApi] Forwarder accept error: {ex.Message}");
+                Debug.LogWarning($"[MoreHttpApi] Accept error: {ex.GetType().Name}: {ex.Message}");
             }
         }
+        Debug.Log("[MoreHttpApi] Accept loop exited");
     }
 
-    static async Task ForwardConnection(TcpClient client, ushort targetPort, CancellationToken ct)
+    static void Forward(TcpClient client, int targetPort)
     {
-        using var _ = client;
-        using var target = new TcpClient();
-
+        TcpClient target = null;
         try
         {
-            await target.ConnectAsync(IPAddress.Loopback, targetPort);
+            target = new TcpClient();
+            target.Connect(IPAddress.Loopback, targetPort);
+
+            var clientStream = client.GetStream();
+            var targetStream = target.GetStream();
+
+            var toTarget = new Thread(() => CopyStream(clientStream, targetStream, "client→game")) { IsBackground = true };
+            var toClient = new Thread(() => CopyStream(targetStream, clientStream, "game→client")) { IsBackground = true };
+
+            toTarget.Start();
+            toClient.Start();
+
+            toTarget.Join();
+            toClient.Join();
         }
-        catch
+        catch (Exception ex)
         {
-            return;
+            Debug.LogWarning($"[MoreHttpApi] Forward error: {ex.GetType().Name}: {ex.Message}");
         }
-
-        using var clientStream = client.GetStream();
-        using var targetStream = target.GetStream();
-
-        var toTarget = CopyAsync(clientStream, targetStream, ct);
-        var toClient = CopyAsync(targetStream, clientStream, ct);
-
-        await Task.WhenAny(toTarget, toClient);
+        finally
+        {
+            try { client?.Close(); } catch { }
+            try { target?.Close(); } catch { }
+        }
     }
 
-    static async Task CopyAsync(NetworkStream from, NetworkStream to, CancellationToken ct)
+    static void CopyStream(NetworkStream from, NetworkStream to, string direction)
     {
         var buffer = new byte[8192];
         try
         {
             int read;
-            while ((read = await from.ReadAsync(buffer, 0, buffer.Length, ct)) > 0)
+            while ((read = from.Read(buffer, 0, buffer.Length)) > 0)
             {
-                await to.WriteAsync(buffer, 0, read, ct);
-                await to.FlushAsync(ct);
+                to.Write(buffer, 0, read);
+                to.Flush();
             }
         }
         catch
