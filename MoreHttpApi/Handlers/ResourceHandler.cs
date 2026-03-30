@@ -17,20 +17,24 @@ public class ResourceHandler(
     async Task<HttpResourceInfo> GetResourcesAsync()
     {
         Dictionary<string, int> totals = [];
+        var inventories = new List<Inventory>();
 
         foreach (var entity in entityRegistry.Entities)
         {
-            var inventory = entity.GetComponent<Inventory>();
-            if (!inventory) continue;
+            inventories.Clear();
+            entity.GetComponents(inventories);
 
-            foreach (var stock in inventory.Stock)
+            foreach (var inventory in inventories)
             {
-                var goodId = stock.GoodId;
-                var amount = stock.Amount;
-                if (amount <= 0) continue;
+                foreach (var stock in inventory.Stock)
+                {
+                    var goodId = stock.GoodId;
+                    var amount = stock.Amount;
+                    if (amount <= 0) continue;
 
-                totals.TryGetValue(goodId, out var current);
-                totals[goodId] = current + amount;
+                    totals.TryGetValue(goodId, out var current);
+                    totals[goodId] = current + amount;
+                }
             }
         }
 
