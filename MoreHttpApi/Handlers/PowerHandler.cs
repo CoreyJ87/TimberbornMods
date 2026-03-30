@@ -26,9 +26,9 @@ public class PowerHandler(
             var node = entity.GetComponent<MechanicalNode>();
             if (!node) continue;
 
-            var active = node.Active;
-            var output = node.PowerOutput;
-            var input = node.PowerInput;
+            var active = node.Enabled;
+            var output = node._nominalPowerOutput;
+            var input = node._nominalPowerInput;
 
             if (active)
             {

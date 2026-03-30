@@ -2,8 +2,7 @@ namespace MoreHttpApi.Handlers;
 
 [MultiBind(typeof(IMoreHttpApiHandler))]
 public class ResourceHandler(
-    EntityRegistry entityRegistry,
-    ILoc t
+    EntityRegistry entityRegistry
 ) : IMoreHttpApiHandler
 {
     public string Endpoint => "resources";
@@ -24,7 +23,7 @@ public class ResourceHandler(
             var inventory = entity.GetComponent<Inventory>();
             if (!inventory) continue;
 
-            foreach (var stock in inventory.AllGoods)
+            foreach (var stock in inventory.Stock)
             {
                 var goodId = stock.GoodId;
                 var amount = stock.Amount;

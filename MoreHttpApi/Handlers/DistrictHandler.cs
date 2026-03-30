@@ -4,7 +4,6 @@ namespace MoreHttpApi.Handlers;
 public class DistrictHandler(
     BeaverPopulation beavers,
     EventBus eb,
-    EntityRegistry entityRegistry,
     ILoc t
 ) : IMoreHttpApiHandler, ILoadableSingleton
 {
