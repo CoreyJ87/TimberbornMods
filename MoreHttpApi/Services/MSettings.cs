@@ -19,11 +19,16 @@ public class MSettings(ISettings settings, ModSettingsOwnerRegistry modSettingsO
         .CreateLocalized("LV.MHA.AllowNetwork")
         .SetLocalizedTooltip("LV.MHA.AllowNetworkDesc"));
 
+    public ModSetting<int> NetworkPort { get; } = new(8090, ModSettingDescriptor
+        .CreateLocalized("LV.MHA.NetworkPort")
+        .SetLocalizedTooltip("LV.MHA.NetworkPortDesc"));
+
     public override void OnBeforeLoad()
     {
         base.OnBeforeLoad();
         AutoStartPort.Descriptor.SetEnableCondition(() => AutoStartApi.Value);
         AllowNetworkAccess.Descriptor.SetEnableCondition(() => AutoStartApi.Value);
+        NetworkPort.Descriptor.SetEnableCondition(() => AutoStartApi.Value && AllowNetworkAccess.Value);
     }
 
 }
