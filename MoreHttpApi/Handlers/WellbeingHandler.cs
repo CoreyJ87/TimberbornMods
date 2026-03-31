@@ -37,7 +37,7 @@ public class WellbeingHandler(
                 var cur = needs[id];
                 cur.total++;
                 cur.pointsSum += need.Points;
-                cur.maxPointsSum += need.NeedSpec.MaxPoints;
+                cur.maxPointsSum += need.NeedSpec.MaximumValue;
                 cur.wellbeingSum += need.Wellbeing;
                 if (need.Enabled) cur.enabledCount++;
                 if (need.Points > 0) cur.satisfiedCount++;
