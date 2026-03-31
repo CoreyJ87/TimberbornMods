@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace MoreHttpApi.Handlers;
 
 [MultiBind(typeof(IMoreHttpApiHandler))]
@@ -6,6 +8,15 @@ public class AutomationHandler(
     ILoc t
 ) : IMoreHttpApiHandler
 {
+    static readonly BindingFlags AllInstance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
+    static readonly HashSet<Type> SerializableTypes =
+    [
+        typeof(bool), typeof(int), typeof(float), typeof(double), typeof(long),
+        typeof(string), typeof(Guid), typeof(short), typeof(byte),
+        typeof(uint), typeof(ulong), typeof(ushort), typeof(sbyte), typeof(decimal)
+    ];
+
     static readonly HashSet<string> AutomationTypeNames =
     [
         "DepthSensor", "FlowSensor", "ContaminationSensor",
@@ -13,7 +24,8 @@ public class AutomationHandler(
         "Gate", "Memory", "Relay",
         "ResourceCounter", "PopulationCounter", "ScienceCounter", "PowerMeter",
         "Indicator", "Speaker", "Detonator",
-        "Lever", "HttpLever"
+        "Lever", "HttpLever",
+        "Automatable"
     ];
 
     public string Endpoint => "automation";
@@ -31,10 +43,13 @@ public class AutomationHandler(
 
         foreach (var entity in entityRegistry.Entities)
         {
-            foreach (var comp in entity.GetComponents<BaseComponent>())
+            foreach (var comp in entity.AllComponents)
             {
                 var typeName = comp.GetType().Name;
                 if (!AutomationTypeNames.Contains(typeName)) continue;
+
+                if (typeName == "Automatable" && TryGetBool(comp, "IsAutomated") != true)
+                    continue;
 
                 var props = new Dictionary<string, object?>();
                 bool isOutputActive = false;
@@ -42,7 +57,8 @@ public class AutomationHandler(
                 try
                 {
                     isOutputActive = TryGetBool(comp, "IsActive") ?? TryGetBool(comp, "IsOn") ?? false;
-                    ExtractProperties(comp, typeName, props);
+                    ExtractAllProperties(comp, props);
+                    ExtractConnections(comp, props);
                 }
                 catch (Exception ex)
                 {
@@ -62,94 +78,76 @@ public class AutomationHandler(
         return new([.. nodes]);
     }
 
-    static void ExtractProperties(BaseComponent comp, string typeName, Dictionary<string, object?> props)
+    static void ExtractAllProperties(object comp, Dictionary<string, object?> props)
     {
-        switch (typeName)
+        var type = comp.GetType();
+
+        foreach (var prop in type.GetProperties(AllInstance))
         {
-            case "DepthSensor":
-                TryAdd(props, comp, "CurrentDepth");
-                TryAdd(props, comp, "Threshold");
-                TryAdd(props, comp, "ThresholdMode");
-                break;
-            case "FlowSensor":
-                TryAdd(props, comp, "CurrentFlow");
-                TryAdd(props, comp, "Threshold");
-                TryAdd(props, comp, "ThresholdMode");
-                break;
-            case "ContaminationSensor":
-                TryAdd(props, comp, "IsContaminated");
-                break;
-            case "WeatherStation":
-                TryAdd(props, comp, "IsHazardousWeather");
-                break;
-            case "Timer":
-                TryAdd(props, comp, "IsOn");
-                TryAdd(props, comp, "OnDuration");
-                TryAdd(props, comp, "OffDuration");
-                TryAdd(props, comp, "TimeRemaining");
-                break;
-            case "Chronometer":
-                TryAdd(props, comp, "StartHour");
-                TryAdd(props, comp, "EndHour");
-                break;
-            case "Gate":
-                TryAdd(props, comp, "GateMode");
-                TryAdd(props, comp, "IsInverted");
-                break;
-            case "Memory":
-                TryAdd(props, comp, "IsOn");
-                break;
-            case "Relay":
-                TryAdd(props, comp, "IsOn");
-                TryAdd(props, comp, "Channel");
-                break;
-            case "Lever":
-            case "HttpLever":
-                TryAdd(props, comp, "IsOn");
-                TryAdd(props, comp, "IsSpringReturn");
-                TryAdd(props, comp, "IsPinned");
-                break;
-            case "ResourceCounter":
-                TryAdd(props, comp, "GoodId");
-                TryAdd(props, comp, "Threshold");
-                TryAdd(props, comp, "CurrentCount");
-                break;
-            case "PopulationCounter":
-                TryAdd(props, comp, "Threshold");
-                TryAdd(props, comp, "CurrentCount");
-                break;
-            case "PowerMeter":
-                TryAdd(props, comp, "Threshold");
-                TryAdd(props, comp, "CurrentPower");
-                break;
-            case "Indicator":
-                TryAdd(props, comp, "IsOn");
-                break;
+            if (prop.GetIndexParameters().Length > 0) continue;
+            if (!IsSerializable(prop.PropertyType)) continue;
+
+            try
+            {
+                props[prop.Name] = prop.GetValue(comp);
+            }
+            catch { }
+        }
+
+        foreach (var field in type.GetFields(AllInstance))
+        {
+            if (field.Name.Contains("BackingField")) continue;
+            if (props.ContainsKey(field.Name)) continue;
+            if (!IsSerializable(field.FieldType)) continue;
+
+            try
+            {
+                var name = field.Name.TrimStart('_');
+                if (name.Length == 0 || props.ContainsKey(name)) continue;
+                props[name] = field.GetValue(comp);
+            }
+            catch { }
         }
     }
 
-    static void TryAdd(Dictionary<string, object?> props, object comp, string propertyName)
+    static void ExtractConnections(object comp, Dictionary<string, object?> props)
     {
-        try
+        var type = comp.GetType();
+
+        foreach (var field in type.GetFields(AllInstance))
         {
-            var type = comp.GetType();
-            var prop = type.GetProperty(propertyName,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
-            if (prop != null)
+            if (field.FieldType.Name != "AutomatorConnection") continue;
+
+            try
             {
-                props[propertyName] = prop.GetValue(comp);
-                return;
+                var conn = field.GetValue(comp);
+                if (conn == null) continue;
+
+                var transmitterProp = conn.GetType().GetProperty("Transmitter", AllInstance);
+                var transmitter = transmitterProp?.GetValue(conn);
+
+                Guid? entityId = null;
+                if (transmitter != null)
+                {
+                    var getComp = transmitter.GetType().GetMethod("GetComponent", AllInstance)
+                        ?.MakeGenericMethod(typeof(EntityComponent));
+                    var entityComp = getComp?.Invoke(transmitter, null) as EntityComponent;
+                    entityId = entityComp?.EntityId;
+                }
+
+                var fieldName = field.Name.TrimStart('_');
+                var key = fieldName.Length > 0 ? $"_conn_{fieldName}" : "_conn_input";
+                props[key] = entityId?.ToString();
             }
-            var field = type.GetField(propertyName,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
-            if (field != null)
-            {
-                props[propertyName] = field.GetValue(comp);
-            }
+            catch { }
         }
-        catch
-        {
-        }
+    }
+
+    static bool IsSerializable(Type type)
+    {
+        if (SerializableTypes.Contains(type) || type.IsEnum) return true;
+        var underlying = Nullable.GetUnderlyingType(type);
+        return underlying != null && (SerializableTypes.Contains(underlying) || underlying.IsEnum);
     }
 
     static bool? TryGetBool(object comp, string name)
@@ -157,12 +155,10 @@ public class AutomationHandler(
         try
         {
             var type = comp.GetType();
-            var prop = type.GetProperty(name,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+            var prop = type.GetProperty(name, AllInstance);
             if (prop?.PropertyType == typeof(bool))
                 return (bool)prop.GetValue(comp);
-            var field = type.GetField(name,
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+            var field = type.GetField(name, AllInstance);
             if (field?.FieldType == typeof(bool))
                 return (bool)field.GetValue(comp);
         }
