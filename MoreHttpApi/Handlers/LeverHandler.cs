@@ -1,3 +1,5 @@
+using HttpLever = MoreHttpApi.Shared.HttpLever;
+
 namespace MoreHttpApi.Handlers;
 
 [MultiBind(typeof(IMoreHttpApiHandler))]
