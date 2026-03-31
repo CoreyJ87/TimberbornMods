@@ -47,7 +47,7 @@ public class LeverHandler(
     async Task<HttpLever> ToggleLeverAsync(ParsedRequestPath parsedRequestPath)
     {
         var (entity, lever) = FindLever(parsedRequestPath);
-        lever.IsOn = !lever.IsOn;
+        lever.Toggle();
         return ToHttpLever(entity, lever);
     }
 
