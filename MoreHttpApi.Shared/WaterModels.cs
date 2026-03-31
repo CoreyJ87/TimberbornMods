@@ -8,6 +8,16 @@ public record HttpStreamGauge(
     float? LowestWaterLevel
 );
 
+public record HttpDepthSensor(
+    Guid EntityId,
+    string? Name,
+    float? CurrentDepth,
+    float? Threshold,
+    string? ThresholdMode,
+    bool IsActive
+);
+
 public record HttpWaterInfo(
-    HttpStreamGauge[] StreamGauges
+    HttpStreamGauge[] StreamGauges,
+    HttpDepthSensor[] DepthSensors
 );
