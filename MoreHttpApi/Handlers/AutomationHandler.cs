@@ -5,6 +5,7 @@ namespace MoreHttpApi.Handlers;
 [MultiBind(typeof(IMoreHttpApiHandler))]
 public class AutomationHandler(
     EntityRegistry entityRegistry,
+    IDayNightCycle dayNightCycle,
     ILoc t
 ) : IMoreHttpApiHandler
 {
@@ -59,6 +60,9 @@ public class AutomationHandler(
                     isOutputActive = TryGetBool(comp, "IsActive") ?? TryGetBool(comp, "IsOn") ?? false;
                     ExtractAllProperties(comp, props);
                     ExtractConnections(comp, props);
+
+                    if (typeName == "Timer")
+                        ExtractTimerIntervals(comp, props);
                 }
                 catch (Exception ex)
                 {
@@ -89,7 +93,8 @@ public class AutomationHandler(
 
             try
             {
-                props[prop.Name] = prop.GetValue(comp);
+                var val = prop.GetValue(comp);
+                props[prop.Name] = val?.GetType().IsEnum == true ? val.ToString() : val;
             }
             catch { }
         }
@@ -104,7 +109,50 @@ public class AutomationHandler(
             {
                 var name = field.Name.TrimStart('_');
                 if (name.Length == 0 || props.ContainsKey(name)) continue;
-                props[name] = field.GetValue(comp);
+                var val = field.GetValue(comp);
+                props[name] = val?.GetType().IsEnum == true ? val.ToString() : val;
+            }
+            catch { }
+        }
+    }
+
+    void ExtractTimerIntervals(object comp, Dictionary<string, object?> props)
+    {
+        var type = comp.GetType();
+
+        var intervalA = type.GetProperty("TimerIntervalA", AllInstance)?.GetValue(comp);
+        var intervalB = type.GetProperty("TimerIntervalB", AllInstance)?.GetValue(comp);
+
+        if (intervalA != null)
+            ExtractInterval(intervalA, "IntervalA", props);
+        if (intervalB != null)
+            ExtractInterval(intervalB, "IntervalB", props);
+    }
+
+    void ExtractInterval(object interval, string prefix, Dictionary<string, object?> props)
+    {
+        var iType = interval.GetType();
+
+        var typeProp = iType.GetProperty("Type", AllInstance);
+        var ticksProp = iType.GetProperty("Ticks", AllInstance);
+        var hoursField = iType.GetField("_hours", AllInstance);
+
+        var intervalType = typeProp?.GetValue(interval);
+        var ticks = ticksProp?.GetValue(interval);
+        var hours = hoursField?.GetValue(interval);
+
+        props[$"{prefix}.Type"] = intervalType?.GetType().IsEnum == true ? intervalType.ToString() : intervalType;
+        props[$"{prefix}.Ticks"] = ticks;
+
+        if (hours is float h && h > 0)
+        {
+            props[$"{prefix}.Hours"] = h;
+        }
+        else if (ticks is int tickCount && tickCount > 0)
+        {
+            try
+            {
+                props[$"{prefix}.Hours"] = dayNightCycle.TicksToHours(tickCount);
             }
             catch { }
         }
