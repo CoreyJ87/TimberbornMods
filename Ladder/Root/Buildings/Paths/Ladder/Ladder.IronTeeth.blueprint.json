@@ -1,0 +1,316 @@
+{
+  "BuildingSpec": {
+    "SelectionSoundName": "Default",
+    "LoopingSoundName": "",
+    "BuildingCost": [
+      {
+        "Id": "Log",
+        "Amount": 4
+      },
+      {
+        "Id": "Plank",
+        "Amount": 6
+      }
+    ],
+    "ScienceCost": 250,
+    "PlaceFinished": false,
+    "FinishableWithBeaversOnSite": true,
+    "DrawRangeBoundsOnIt": false
+  },
+  "BuildingModelSpec": {
+    "FinishedModelName": "#Finished",
+    "UnfinishedModelName": "#UnFinished",
+    "FinishedUncoveredModelName": "#FinishedUncovered",
+    "UndergroundModelName": "",
+    "ConstructionModeModel": "Finished",
+    "UndergroundModelDepth": 0
+  },
+  "TemplateSpec": {
+    "TemplateName": "Ladder",
+    "BackwardCompatibleTemplateNames": [],
+    "RequiredFeatureToggle": "",
+    "DisablingFeatureToggle": ""
+  },
+  "BlockObjectNavMeshSettingsSpec": {
+    "NoAutoWalls": false,
+    "GenerateFloorsOnStackable": true,
+    "EdgeGroups": [
+      {
+        "Cost": 1.0,
+        "Group": {
+          "UseGroup": false,
+          "GroupName": ""
+        },
+        "IsPath": true,
+        "AddedEdges": [
+          {
+            "Start": {
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "End": {
+              "X": 0,
+              "Y": 0,
+              "Z": 1
+            },
+            "IsTwoWay": true
+          }
+        ]
+      },
+      {
+        "Cost": 1.0,
+        "Group": {
+          "UseGroup": true,
+          "GroupName": "Blocked"
+        },
+        "IsPath": true,
+        "AddedEdges": [
+          {
+            "Start": {
+              "X": 0,
+              "Y": 0,
+              "Z": 0
+            },
+            "End": {
+              "X": 0,
+              "Y": -1,
+              "Z": 0
+            },
+            "IsTwoWay": false
+          }
+        ]
+      }
+    ],
+    "UnblockedCoordinates": [
+      {
+        "Group": "",
+        "Coordinates": {
+          "X": 0,
+          "Y": 0,
+          "Z": 0
+        }
+      }
+    ]
+  },
+  "BlockObjectSpec": {
+    "Size": {
+      "X": 1,
+      "Y": 1,
+      "Z": 1
+    },
+    "Blocks": [
+      {
+        "MatterBelow": "GroundOrStackable",
+        "Occupations": "Bottom, Top, Corners, Middle",
+        "Stackable": "BlockObject",
+        "OccupyAllBelow": false,
+        "Underground": false
+      }
+    ],
+    "Entrance": {
+      "HasEntrance": false,
+      "Coordinates": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "BaseZ": 0,
+      "Overridable": false,
+      "Flippable": false
+    }
+  },
+  "PlaceableBlockObjectSpec": {
+    "ToolGroupId": "Paths",
+    "ToolOrder": 1000,
+    "ToolShape": "Square",
+    "Layout": "Single",
+    "CustomPivot": {
+      "HasCustomPivot": false,
+      "Coordinates": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      }
+    },
+    "CanBeAttachedToTerrainSide": false,
+    "DevModeTool": false
+  },
+  "LabeledEntitySpec": {
+    "DisplayNameLocKey": "Tobbert.Ladder.DisplayName",
+    "DescriptionLocKey": "Tobbert.Ladder.Description",
+    "FlavorDescriptionLocKey": "Tobbert.Ladder.FlavorDiscription",
+    "Icon": "Buildings/Paths/Ladder/LadderIcon"
+  },
+  "PathSpec": {
+    "MainPathCoordinates": {
+      "X": 0,
+      "Y": 0,
+      "Z": 0
+    }
+  },
+  "LadderSpec": {},
+  "Children": {
+    "#Finished": {
+      "Children": {
+        "Model": {
+          "TimbermeshSpec": {
+            "Model": "Buildings/Paths/Ladder/Ladder.IronTeeth.Model"
+          },
+          "CollidersSpec": {
+            "BoxColliders": [
+              {
+                "Center": {
+                  "X": 0.1,
+                  "Y": 0.5,
+                  "Z": 0.9
+                },
+                "Size": {
+                  "X": 0.2,
+                  "Y": 1.0,
+                  "Z": 0.2
+                }
+              },
+              {
+                "Center": {
+                  "X": 0.5,
+                  "Y": 0.93,
+                  "Z": 0.5
+                },
+                "Size": {
+                  "X": 1.0,
+                  "Y": 0.17,
+                  "Z": 1.0
+                }
+              },
+              {
+                "Center": {
+                  "X": 0.1,
+                  "Y": 0.5,
+                  "Z": 0.1
+                },
+                "Size": {
+                  "X": 0.2,
+                  "Y": 1.0,
+                  "Z": 0.2
+                }
+              },
+              {
+                "Center": {
+                  "X": 0.9,
+                  "Y": 0.5,
+                  "Z": 0.1
+                },
+                "Size": {
+                  "X": 0.2,
+                  "Y": 1.0,
+                  "Z": 0.2
+                }
+              },
+              {
+                "Center": {
+                  "X": 0.9,
+                  "Y": 0.5,
+                  "Z": 0.9
+                },
+                "Size": {
+                  "X": 0.2,
+                  "Y": 1.0,
+                  "Z": 0.2
+                }
+              }
+            ],
+            "SphereColliders": [],
+            "CapsuleColliders": []
+          }
+        }
+      }
+    },
+    "#FinishedUncovered": {
+      "TimbermeshSpec": {
+        "Model": "Buildings/Paths/Platform/Platform.Uncovered.IronTeeth.Model"
+      },
+      "CollidersSpec": {
+        "BoxColliders": [
+          {
+            "Center": {
+              "X": 0.11,
+              "Y": 0.4,
+              "Z": 0.11
+            },
+            "Size": {
+              "X": 0.2,
+              "Y": 0.9,
+              "Z": 0.2
+            }
+          },
+          {
+            "Center": {
+              "X": 0.89,
+              "Y": 0.4,
+              "Z": 0.11
+            },
+            "Size": {
+              "X": 0.2,
+              "Y": 0.9,
+              "Z": 0.2
+            }
+          },
+          {
+            "Center": {
+              "X": 0.89,
+              "Y": 0.4,
+              "Z": 0.89
+            },
+            "Size": {
+              "X": 0.2,
+              "Y": 0.9,
+              "Z": 0.2
+            }
+          },
+          {
+            "Center": {
+              "X": 0.11,
+              "Y": 0.4,
+              "Z": 0.89
+            },
+            "Size": {
+              "X": 0.2,
+              "Y": 0.9,
+              "Z": 0.2
+            }
+          }
+        ],
+        "SphereColliders": [],
+        "CapsuleColliders": []
+      }
+    },
+    "#UnFinished": {
+      "Children": {
+        "ConstructionSite1x1": {
+          "TimbermeshSpec": {
+            "Model": "ConstructionBases/ConstructionBase1x1/ConstructionBase1x1.Model"
+          },
+          "CollidersSpec": {
+            "BoxColliders": [
+              {
+                "Center": {
+                  "X": 0.5,
+                  "Y": 0.05,
+                  "Z": 0.5
+                },
+                "Size": {
+                  "X": 1.0,
+                  "Y": 0.1,
+                  "Z": 1.0
+                }
+              }
+            ],
+            "SphereColliders": [],
+            "CapsuleColliders": []
+          }
+        }
+      }
+    }
+  }
+}

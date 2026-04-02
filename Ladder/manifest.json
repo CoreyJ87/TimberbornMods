@@ -1,0 +1,7 @@
+{
+    "Name": "Ladder",
+    "Version": "2.0.0",
+    "Id": "Ladder",
+    "MinimumGameVersion": "1.0.0",
+    "Description": "Build ladders so beavers can go straight up and down without large stairwells"
+}
