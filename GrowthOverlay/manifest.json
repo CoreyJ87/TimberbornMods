@@ -1,0 +1,7 @@
+{
+    "Name": "Growth Overlay",
+    "Version": "2.0.0",
+    "Id": "GrowthOverlay",
+    "MinimumGameVersion": "1.0.0",
+    "Description": "Shows growth progress percentage overlay for trees and crops when the stockpile overlay hotkey is held"
+}
