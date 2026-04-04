@@ -1,6 +1,6 @@
 namespace GrowthOverlay;
 
-internal class GrowthOverlayItemAdder : TickableComponent, IInitializableEntity, IDeletableEntity
+internal class GrowthOverlayItemAdder : TickableComponent, IAwakableComponent, IInitializableEntity, IDeletableEntity
 {
     GrowthOverlayService _growthOverlay = null!;
     VisualElementLoader _visualElementLoader = null!;
@@ -27,10 +27,10 @@ internal class GrowthOverlayItemAdder : TickableComponent, IInitializableEntity,
 
     public void Awake()
     {
-        _blockObjectCenter = GetComponentFast<BlockObjectCenter>();
-        _growable = GetComponentFast<Growable>();
-        _yieldGrower = GetComponentFast<GatherableYieldGrower>();
-        _livingNaturalResource = GetComponentFast<LivingNaturalResource>();
+        _blockObjectCenter = GetComponent<BlockObjectCenter>();
+        _growable = GetComponent<Growable>();
+        _yieldGrower = GetComponent<GatherableYieldGrower>();
+        _livingNaturalResource = GetComponent<LivingNaturalResource>();
 
         _item = _visualElementLoader.LoadVisualElement("Game/StockpileOverlayItem");
 
@@ -41,7 +41,7 @@ internal class GrowthOverlayItemAdder : TickableComponent, IInitializableEntity,
         btn.clicked += delegate { _selectionManager.Select(_growable); };
 
         var icon = _item.Q<Image>("Icon");
-        icon.sprite = _growable.GetComponentFast<LabeledPrefab>().Image;
+        icon.sprite = _growable.GetComponent<LabeledEntity>().Image;
         icon.AddToClassList("icon--hidden");
 
         _itemText = _item.Q<Label>("Stock");
@@ -52,7 +52,7 @@ internal class GrowthOverlayItemAdder : TickableComponent, IInitializableEntity,
 
     public void InitializeEntity()
     {
-        if (!_livingNaturalResource.IsDead && _livingNaturalResource.isActiveAndEnabled)
+        if (!_livingNaturalResource.IsDead && _livingNaturalResource.Enabled)
         {
             AddToOverlay();
             UpdateGrowth();

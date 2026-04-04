@@ -1,4 +1,4 @@
-﻿namespace TImprove4Modders.DevModules;
+namespace TImprove4Modders.DevModules;
 
 public class ComponentModule(EventBus eb) : IDevModule, ILoadableSingleton
 {
@@ -38,7 +38,7 @@ public class ComponentModule(EventBus eb) : IDevModule, ILoadableSingleton
             return;
         }
 
-        foreach (var c in currObj.AllComponents)
+        foreach (var c in currObj!.AllComponents)
         {
             var type = c.GetType();
             Debug.Log(type.FullName);

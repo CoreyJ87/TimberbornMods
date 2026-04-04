@@ -9,6 +9,7 @@ public class ModConfigurator : IConfigurator
         containerDefinition.Bind<GrowthOverlayShower>().AsSingleton();
         containerDefinition.Bind<GrowthOverlayTogglePanel>().AsSingleton();
         containerDefinition.Bind<GrowthOverlayHider>().AsSingleton();
+        containerDefinition.Bind<GrowthOverlayItemAdder>().AsTransient();
         containerDefinition.MultiBind<TemplateModule>().ToProvider(ProvideTemplateModule).AsSingleton();
     }
 

@@ -21,7 +21,7 @@ internal class GrowthOverlayShower : ILoadableSingleton, IInputProcessor
 
     public bool ProcessInput()
     {
-        if (_inputService.ShowStockpileOverlay)
+        if (_inputService.IsKeyHeld("ShowStockpileOverlay"))
         {
             if (!_isShown)
             {

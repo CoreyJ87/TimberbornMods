@@ -1,4 +1,4 @@
-﻿namespace TImprove4Modders.DevModules;
+namespace TImprove4Modders.DevModules;
 
 public class PrintUiModule(PanelStack panelStack, IAssetLoader loader) : IDevModule
 {
@@ -35,7 +35,9 @@ public class PrintUiModule(PanelStack panelStack, IAssetLoader loader) : IDevMod
                     var ss = ve.styleSheets[i];
 
                     path = Path.Combine(folder, $"{ss.name}.uss");
+#pragma warning disable CS0618
                     File.WriteAllText(path, ss.Describe());
+#pragma warning restore CS0618
                 }
             }
             catch (Exception ex)
@@ -57,7 +59,9 @@ public class PrintUiModule(PanelStack panelStack, IAssetLoader loader) : IDevMod
 
     void PrintUss(VisualElement el)
     {
+#pragma warning disable CS0618
         el.PrintStylesheet();
+#pragma warning restore CS0618
     }
 
     void PrintUxml(VisualElement el)

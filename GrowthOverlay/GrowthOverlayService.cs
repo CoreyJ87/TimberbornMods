@@ -3,7 +3,7 @@ namespace GrowthOverlay;
 internal class GrowthOverlayService : ILoadableSingleton, ILateUpdatableSingleton
 {
     readonly Underlay _underlay;
-    readonly CameraComponent _cameraComponent;
+    readonly CameraService _cameraComponent;
     readonly UISettings _uiSettings;
     readonly Dictionary<VisualElement, Vector3> _items = new();
     readonly List<GrowthOverlayToggle> _toggles = new();
@@ -12,7 +12,7 @@ internal class GrowthOverlayService : ILoadableSingleton, ILateUpdatableSingleto
 
     internal bool IsEnabled => _enabled;
 
-    public GrowthOverlayService(Underlay underlay, CameraComponent cameraComponent, UISettings uiSettings)
+    public GrowthOverlayService(Underlay underlay, CameraService cameraComponent, UISettings uiSettings)
     {
         _underlay = underlay;
         _cameraComponent = cameraComponent;
@@ -99,7 +99,7 @@ internal class GrowthOverlayService : ILoadableSingleton, ILateUpdatableSingleto
         if (inFront)
         {
             var pos = _cameraComponent.WorldSpaceToPanelSpace(root, anchor);
-            item.transform.position = new Vector2(
+            item.style.translate = new Translate(
                 pos.x - root.layout.width / 2f,
                 pos.y - root.layout.height / 2f);
         }

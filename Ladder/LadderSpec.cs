@@ -1,5 +1,3 @@
 namespace Ladder;
 
-public class LadderSpec : BaseComponent
-{
-}
+public record LadderSpec : ComponentSpec;

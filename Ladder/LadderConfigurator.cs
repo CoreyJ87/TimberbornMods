@@ -5,6 +5,7 @@ public class LadderConfigurator : IConfigurator
 {
     public void Configure(IContainerDefinition containerDefinition)
     {
+        containerDefinition.Bind<LadderComponent>().AsTransient();
         containerDefinition.MultiBind<TemplateModule>().ToProvider(ProvideTemplateModule).AsSingleton();
     }
 
