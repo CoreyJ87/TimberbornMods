@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Bindito.Core;
 using Timberborn.GameDistricts;
 using Timberborn.Persistence;
@@ -23,7 +22,7 @@ public class IngredientComponent : TickableComponent, IPersistentEntity, IEmploy
     private Manufactory manufactory;
     private Workplace workplace;
     public bool Available { get; private set; }
-    public bool Active { get; set; } = true;
+    public bool Active { get; set; } = false;
     public float High { get; set; } = 0.50f;
     public float Low { get; set; } = 0.10f;
     public float Fillrate { get; private set; } = 0f;
@@ -78,12 +77,15 @@ public class IngredientComponent : TickableComponent, IPersistentEntity, IEmploy
         }
 
         Available = manufactory.CurrentRecipe?.ConsumesIngredients ?? false;
-        var ingredients = manufactory.CurrentRecipe?.Ingredients ?? [];
-        Fillrate = ingredients.Aggregate(
-            1.0f,
-            (current, ingredient) => Mathf.Min(
-                current,
-                districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, ingredient.Id)));
+        var ingredients = manufactory.CurrentRecipe?.Ingredients;
+        float fillrate = 1.0f;
+        if (ingredients != null)
+        {
+            var district = districtBuilding.InstantDistrict;
+            foreach (var ingredient in ingredients)
+                fillrate = Mathf.Min(fillrate, districtResourceCounterService.GetFillRate(district, ingredient.Id));
+        }
+        Fillrate = fillrate;
         EmploymentBounds = GetEmploymentBoundsIngredient(Active ? Fillrate : 1.0f);
     }
 

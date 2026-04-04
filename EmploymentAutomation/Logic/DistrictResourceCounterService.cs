@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Bindito.Core;
 using Timberborn.Common;
 using Timberborn.GameDistricts;
@@ -14,10 +13,14 @@ namespace EmploymentAutomation.Logic
 {
     public class DistrictResourceCounterService : ITickableSingleton, IPostLoadableSingleton
     {
+        private const int TickInterval = 15;
+
         private readonly Dictionary<DistrictCenter, Dictionary<string, int[]>> stockCounter = new();
+        private readonly List<GoodAmount> capacityCache = new();
 
         private EventBus eventBus;
         private DistrictCenterRegistry districtCenterRegistry;
+        private int tickCounter;
 
         public void PostLoad()
         {
@@ -25,7 +28,13 @@ namespace EmploymentAutomation.Logic
             UpdateResources();
         }
 
-        public void Tick() => UpdateResources();
+        public void Tick()
+        {
+            if (++tickCounter < TickInterval)
+                return;
+            tickCounter = 0;
+            UpdateResources();
+        }
 
         [Inject]
         public void InjectDependencies(DistrictCenterRegistry districtCenterRegistry, EventBus eventBus)
@@ -83,16 +92,18 @@ namespace EmploymentAutomation.Logic
 
         private void ResetCounter()
         {
-            foreach (var counts in stockCounter.Values.SelectMany(goods => goods.Values))
+            foreach (var districtGoods in stockCounter.Values)
             {
-                counts[0] = 0;
-                counts[1] = 0;
+                foreach (var counts in districtGoods.Values)
+                {
+                    counts[0] = 0;
+                    counts[1] = 0;
+                }
             }
         }
 
         private void AddInventoryToCounter(Inventory inventory)
         {
-            // Add district
             var districtCenter = inventory.GetComponent<DistrictBuilding>().InstantDistrict;
             if (!districtCenter)
             {
@@ -102,15 +113,19 @@ namespace EmploymentAutomation.Logic
             if (!stockCounter.ContainsKey(districtCenter))
                 stockCounter.Add(districtCenter, new Dictionary<string, int[]>());
 
-            // Count capacities
-            var capacityCache = new List<GoodAmount>();
+            capacityCache.Clear();
             inventory.GetCapacity(capacityCache);
-            foreach (var good in capacityCache.Where(good => inventory.Gives(good.GoodId)))
-                AddAmountToCounter(districtCenter, good.GoodId, good.Amount, 1);
+            foreach (var good in capacityCache)
+            {
+                if (inventory.Gives(good.GoodId))
+                    AddAmountToCounter(districtCenter, good.GoodId, good.Amount, 1);
+            }
 
-            // Count stock
-            foreach (var good in inventory.Stock.Where(good => inventory.Gives(good.GoodId)))
-                AddAmountToCounter(districtCenter, good.GoodId, good.Amount, 0);
+            foreach (var good in inventory.Stock)
+            {
+                if (inventory.Gives(good.GoodId))
+                    AddAmountToCounter(districtCenter, good.GoodId, good.Amount, 0);
+            }
         }
 
         private void AddAmountToCounter(DistrictCenter districtCenter, string goodId, int amount, int index)

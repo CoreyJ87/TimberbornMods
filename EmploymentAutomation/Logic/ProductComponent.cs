@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Bindito.Core;
 using Timberborn.GameDistricts;
 using Timberborn.Persistence;
@@ -77,13 +76,15 @@ public class ProductComponent : TickableComponent, IPersistentEntity, IEmploymen
         }
 
         Available = manufactory.CurrentRecipe?.ProducesProducts ?? false;
-        var products = manufactory.CurrentRecipe?.Products ?? [];
-        Fillrate = products.Aggregate(
-            1.0f,
-            (current, product) =>
-                Mathf.Min(
-                    current,
-                    districtResourceCounterService.GetFillRate(districtBuilding.InstantDistrict, product.Id)));
+        var products = manufactory.CurrentRecipe?.Products;
+        float fillrate = 1.0f;
+        if (products != null)
+        {
+            var district = districtBuilding.InstantDistrict;
+            foreach (var product in products)
+                fillrate = Mathf.Min(fillrate, districtResourceCounterService.GetFillRate(district, product.Id));
+        }
+        Fillrate = fillrate;
         EmploymentBounds = GetEmploymentBoundsProduct(Active ? Fillrate : 1.0f);
     }
 

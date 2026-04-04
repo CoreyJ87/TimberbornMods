@@ -13,6 +13,7 @@ internal class GrowthOverlayItemAdder : TickableComponent, IAwakableComponent, I
 
     VisualElement _item = null!;
     Label _itemText = null!;
+    int _lastProgress = -1;
 
     [Inject]
     public void InjectDependencies(
@@ -76,7 +77,11 @@ internal class GrowthOverlayItemAdder : TickableComponent, IAwakableComponent, I
             ? 100f + _yieldGrower.GrowthProgress * 100f
             : _growable.GrowthProgress * 100f;
 
-        _itemText.text = $"{MathF.Floor(progress)}%";
+        int floored = (int)MathF.Floor(progress);
+        if (floored == _lastProgress)
+            return;
+        _lastProgress = floored;
+        _itemText.text = $"{floored}%";
         _itemText.ToggleDisplayStyle(visible: true);
     }
 

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Immutable;
-using System.Linq;
 using Bindito.Core;
 using Timberborn.MechanicalSystem;
 using Timberborn.Persistence;
@@ -21,6 +19,8 @@ public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentB
     private static readonly PropertyKey<bool> PowerActiveKey = new("Active");
     private static readonly PropertyKey<float> PowerHighKey = new("High");
     private static readonly PropertyKey<float> PowerLowKey = new("Low");
+
+    private static bool? smartPowerDetected;
     private bool permanentlyDisabled = false;
 
     public bool Available
@@ -70,15 +70,32 @@ public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentB
         eventBus.Register(this);
     }
 
+    private static bool IsSmartPowerLoaded()
+    {
+        if (smartPowerDetected.HasValue)
+            return smartPowerDetected.Value;
+
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            foreach (var type in assembly.GetTypes())
+            {
+                if (type.Namespace is "IgorZ.SmartPower.Core")
+                {
+                    smartPowerDetected = true;
+                    return true;
+                }
+            }
+        }
+        smartPowerDetected = false;
+        return false;
+    }
+
     private void UpdateComponents()
     {
         workplace = GetComponent<Workplace>();
         manufactory = GetComponent<Manufactory>();
         mechanicalNode = GetComponent<MechanicalNode>();
-        // Don't perform power management when another mod adds power automation
-        permanentlyDisabled = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(assembly => assembly.GetTypes())
-            .Any(x => x.Namespace is "IgorZ.SmartPower.Core");
+        permanentlyDisabled = IsSmartPowerLoaded();
     }
 
     public override void StartTickable() => UpdateComponents();
@@ -94,22 +111,37 @@ public class PowerComponent : TickableComponent, IPersistentEntity, IEmploymentB
         Available = (mechanicalNode?.IsConsumer ?? false) && (manufactory?.HasCurrentRecipe ?? false);
         if (!Available)
             return;
-        var batteries = mechanicalNode?.Graph?.Batteries.Where(battery =>
-            battery.ActiveAndPowered).ToImmutableArray() ?? [];
-        var capacities = batteries.Select(battery =>
-            new Vector2(battery.NominalBatteryCharge, battery.NominalBatteryCapacity));
-        var networkCapacity = capacities.Aggregate(Vector2.zero, (x, y) => x + y);
-        if (networkCapacity.y == 0)
+
+        var batteries = mechanicalNode?.Graph?.Batteries;
+        if (batteries == null)
+        {
+            Fillrate = mechanicalNode?.Graph?.PowerEfficiency ?? 0f;
+            EmploymentBounds = GetEmploymentBoundsPower(Fillrate);
+            return;
+        }
+
+        float totalCharge = 0f;
+        float totalCapacity = 0f;
+        foreach (var battery in batteries)
+        {
+            if (battery.ActiveAndPowered)
+            {
+                totalCharge += battery.NominalBatteryCharge;
+                totalCapacity += battery.NominalBatteryCapacity;
+            }
+        }
+
+        if (totalCapacity == 0f)
             Fillrate = mechanicalNode?.Graph?.PowerEfficiency ?? 0f;
         else
-            Fillrate = networkCapacity.x / networkCapacity.y;
+            Fillrate = totalCharge / totalCapacity;
         EmploymentBounds = GetEmploymentBoundsPower(Fillrate);
     }
 
     private Vector2Int GetEmploymentBoundsPower(float powerMeter)
     {
         return new Vector2Int(
-            powerMeter < High ? 0 : workplace.MaxWorkers, // min
-            powerMeter < Low ? 0 : workplace.MaxWorkers); // max
+            powerMeter < High ? 0 : workplace.MaxWorkers,
+            powerMeter < Low ? 0 : workplace.MaxWorkers);
     }
 }
