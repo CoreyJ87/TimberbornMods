@@ -1,0 +1,7 @@
+{
+    "Name": "EmploymentAutomation",
+    "Version": "1.0.0",
+    "Id": "EmploymentAutomation",
+    "MinimumGameVersion": "1.0.0",
+    "Description": "Automatically employs beavers based on district goods"
+}
