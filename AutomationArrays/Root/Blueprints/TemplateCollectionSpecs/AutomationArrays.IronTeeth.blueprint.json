@@ -1,0 +1,8 @@
+{
+    "TemplateCollectionSpec": {
+        "CollectionId": "Buildings.IronTeeth",
+        "Blueprints": [
+            "Buildings/Automation/RelayHub/RelayHub.IronTeeth.blueprint"
+        ]
+    }
+}

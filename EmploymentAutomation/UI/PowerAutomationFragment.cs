@@ -13,18 +13,26 @@ public class PowerAutomationFragment(
     ILoc loc,
     VisualElementInitializer initializer) : BaseEntityPanelFragment<PowerComponent>
 {
-    private Toggle toggle;
-    private MinMaxSlider slider;
+    private CollapsiblePanel collapsible = null!;
+    private Toggle toggle = null!;
+    private MinMaxSlider slider = null!;
 
     protected override void InitializePanel()
     {
-        toggle = panel.AddToggle(text: loc.T("Ximsa.EmploymentAutomation.PowerToggle"), onValueChanged: OnToggle);
-        slider = panel.AddIntMinMaxSliderWithValueDisplay(
+        collapsible = new CollapsiblePanel()
+            .SetTitle(loc.T("Ximsa.EmploymentAutomation.PowerToggle"));
+        collapsible.SetExpandWithoutNotify(false);
+        panel.Add(collapsible);
+
+        toggle = collapsible.Container.AddToggle(
+            text: loc.T("Ximsa.EmploymentAutomation.PowerToggle"),
+            onValueChanged: OnToggle);
+        slider = collapsible.Container.AddIntMinMaxSliderWithValueDisplay(
             label: "",
             value: new Vector2Int(10, 50),
             min: 0,
             max: 100,
-            onChange: OnIngredientSliderChanged);
+            onChange: OnSliderChanged);
         panel.Initialize(initializer);
     }
 
@@ -38,11 +46,11 @@ public class PowerAutomationFragment(
     private void UpdateValues(IEmploymentBoundsProvider component)
     {
         panel.ToggleDisplayStyle(component.Available);
-        toggle.ToggleDisplayStyle(component.Available);
-        slider.ToggleDisplayStyle(component.Available);
+        collapsible.ToggleDisplayStyle(component.Available);
         toggle.text = ToggleText(component.Fillrate);
         toggle.value = component.Active;
-        slider.value = new Vector2(component.Low*100f, component.High*100f);
+        slider.value = new Vector2(component.Low * 100f, component.High * 100f);
+        collapsible.SetTitle(HeaderText(component));
     }
     
     public override void UpdateFragment()
@@ -55,12 +63,18 @@ public class PowerAutomationFragment(
     private void UpdateReadonlyValues(IEmploymentBoundsProvider component)
     {
         toggle.text = ToggleText(component.Fillrate);
+        collapsible.SetTitle(HeaderText(component));
     }
 
-    private string ToggleText(float fillrate) =>
-        loc.T("Ximsa.EmploymentAutomation.PowerToggle") + (int)Math.Round(fillrate*100) + "%";
+    private string HeaderText(IEmploymentBoundsProvider component) =>
+        loc.T("Ximsa.EmploymentAutomation.PowerToggle")
+        + " " + (component.Active ? "ON" : "OFF")
+        + " (" + (int)Math.Round(component.Fillrate * 100) + "%)";
 
-    private void OnIngredientSliderChanged(Vector2Int value)
+    private string ToggleText(float fillrate) =>
+        loc.T("Ximsa.EmploymentAutomation.PowerToggle") + (int)Math.Round(fillrate * 100) + "%";
+
+    private void OnSliderChanged(Vector2Int value)
     {
         if (component == null)
             return;

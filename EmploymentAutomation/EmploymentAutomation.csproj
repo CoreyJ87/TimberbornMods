@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputModFolderName>EmploymentAutomation</OutputModFolderName>
-        <GameSolutionFolder>..\TimberbornMods\</GameSolutionFolder>
     </PropertyGroup>
-    <Import Project="..\TimberbornMods\Targets\Common.targets" />
-    <Import Project="..\TimberbornMods\Targets\CommonTimberUI.targets" />
+    <Import Project="../Targets/Common.targets" />
+    <Import Project="../Targets/CommonTimberUI.targets" />
 </Project>

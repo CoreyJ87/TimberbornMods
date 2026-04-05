@@ -23,8 +23,8 @@ public class ProductComponent : TickableComponent, IPersistentEntity, IEmploymen
     private DistrictResourceCounterService districtResourceCounterService;
     public bool Available { get; private set; }
     public bool Active { get; set; } = false;
-    public float High { get; set; } = 0.90f;
-    public float Low { get; set; } = 0.50f;
+    public float High { get; set; } = 0.95f;
+    public float Low { get; set; } = 0.75f;
     public float Fillrate { get; private set; } = 0f;
     public Vector2Int EmploymentBounds { get; private set; } = new();
 

@@ -13,15 +13,21 @@ public class IngredientAutomationFragment(
     ILoc loc,
     VisualElementInitializer initializer) : BaseEntityPanelFragment<IngredientComponent>
 {
-    private Toggle toggle;
-    private MinMaxSlider slider;
+    private CollapsiblePanel collapsible = null!;
+    private Toggle toggle = null!;
+    private MinMaxSlider slider = null!;
 
     protected override void InitializePanel()
     {
-        toggle = panel.AddToggle(
+        collapsible = new CollapsiblePanel()
+            .SetTitle(loc.T("Ximsa.EmploymentAutomation.IngredientToggle"));
+        collapsible.SetExpandWithoutNotify(false);
+        panel.Add(collapsible);
+
+        toggle = collapsible.Container.AddToggle(
             text: loc.T("Ximsa.EmploymentAutomation.IngredientToggle"),
             onValueChanged: OnToggle);
-        slider = panel.AddIntMinMaxSliderWithValueDisplay(
+        slider = collapsible.Container.AddIntMinMaxSliderWithValueDisplay(
             label: "",
             value: new Vector2Int(),
             min: 0,
@@ -47,17 +53,23 @@ public class IngredientAutomationFragment(
     private void UpdateReadonlyValues(IEmploymentBoundsProvider component)
     {
         toggle.text = ToggleText(component.Fillrate);
+        collapsible.SetTitle(HeaderText(component));
     }
 
     private void UpdateValues(IEmploymentBoundsProvider component)
     {
         panel.ToggleDisplayStyle(component.Available);
-        toggle.ToggleDisplayStyle(component.Available);
-        slider.ToggleDisplayStyle(component.Available);
+        collapsible.ToggleDisplayStyle(component.Available);
         toggle.text = ToggleText(component.Fillrate);
         toggle.value = component.Active;
         slider.value = new Vector2(component.Low * 100f, component.High * 100f);
+        collapsible.SetTitle(HeaderText(component));
     }
+
+    private string HeaderText(IEmploymentBoundsProvider component) =>
+        loc.T("Ximsa.EmploymentAutomation.IngredientToggle")
+        + " " + (component.Active ? "ON" : "OFF")
+        + " (" + (int)Math.Round(component.Fillrate * 100) + "%)";
 
     private string ToggleText(float fillrate) =>
         loc.T("Ximsa.EmploymentAutomation.IngredientToggle") + (int)Math.Round(fillrate * 100) + "%";
