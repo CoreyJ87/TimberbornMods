@@ -23,6 +23,9 @@ public class SimpleRouter(IEnumerable<IMoreHttpApiHandler> handlers) : ILoadable
         TimberUiUtils.LogVerbose(() => $"[{nameof(MoreHttpApi)}] Handled by {handler.GetType().Name}: " +
             string.Join('/', [parsedRequestPath.RouterSegment, ..parsedRequestPath.RemainingSegment]));
 
+        if (handler is IBackgroundHttpApiHandler)
+            return await handler.HandleAsync(context, parsedRequestPath);
+
         await Awaitable.MainThreadAsync();
         return await handler.HandleAsync(context, parsedRequestPath);        
     }

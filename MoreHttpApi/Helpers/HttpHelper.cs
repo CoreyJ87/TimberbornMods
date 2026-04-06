@@ -35,14 +35,17 @@ public static class HttpHelper
             try
             {
                 await handler();
+                await Awaitable.BackgroundThreadAsync();
                 await context.WriteText("", 204);
             }
             catch (StatusCodeException ex)
             {
+                await Awaitable.BackgroundThreadAsync();
                 await context.WriteText(ex.Content, ex.StatusCode);
             }
             catch (Exception ex)
             {
+                await Awaitable.BackgroundThreadAsync();
                 await context.WriteText(ex.ToString(), 500);
             }
 
@@ -54,6 +57,8 @@ public static class HttpHelper
 			try
 			{
                 var result = await handler();
+
+                await Awaitable.BackgroundThreadAsync();
 
                 if (result is string str)
                 {
@@ -72,10 +77,12 @@ public static class HttpHelper
 			}
 			catch (StatusCodeException ex)
 			{
+                await Awaitable.BackgroundThreadAsync();
                 await context.WriteText(ex.Content, ex.StatusCode);
 			}
             catch (Exception ex)
             {
+                await Awaitable.BackgroundThreadAsync();
                 await context.WriteText(ex.ToString(), 500);
             }
 

@@ -1,6 +1,6 @@
 ﻿namespace MoreHttpApi.Handlers;
 
-public class PingHandler : IMoreHttpApiHandler
+public class PingHandler : IBackgroundHttpApiHandler
 {
     public string Endpoint => "ping";
 

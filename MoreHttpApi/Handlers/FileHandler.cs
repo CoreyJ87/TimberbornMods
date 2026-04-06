@@ -19,6 +19,7 @@ public class FileHandler(IAssetLoader assets) : IMoreHttpApiHandler
                 if (string.IsNullOrEmpty(path)) { return false; }
 
                 var bytes = await GetImageAsync(path);
+                await Awaitable.BackgroundThreadAsync();
                 await context.Write("image/png", bytes);
 
                 return true;
