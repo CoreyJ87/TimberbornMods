@@ -29,9 +29,21 @@ The wonder completion UI lives in:
 - `Timberborn.GameWonderCompletion`
 - `Timberborn.GameWonderCompletionUI`
 
-## Next Steps
-1. On Windows PC, open ILSpy/dnSpy and load the game DLLs from `Timberborn_Data/Managed/`
-2. Look at types in `Timberborn.SettlementStatistics` - find the service class and its properties/methods
-3. Check if it's a singleton injectable via `[Bind]` or needs to be accessed differently
-4. Create a `StatisticsHandler.cs` in `Handlers/` that injects the service and returns all stats
-5. Add corresponding models and dashboard card
+## Implementation
+
+### ILSpy Findings
+- `IncrementalStatisticCollector` is the central service (bound as singleton in `SettlementStatisticsConfigurator`)
+- `GetOrDefault(string) : int` returns the value for a given stat ID
+- `StatisticIds` has string constants for all stat IDs
+- Individual `*StatisticCollector` classes are event listeners that call `Increment()` on the central collector
+
+### Files Created
+- `MoreHttpApi.Shared/StatisticsModels.cs` — `HttpStatistic` and `HttpStatisticsInfo` records
+- `MoreHttpApi/Handlers/StatisticsHandler.cs` — endpoint at `/MoreHttpApi/statistics`
+
+### API
+- `GET /MoreHttpApi/statistics` — returns all settlement statistics as `{ Statistics: [{ Id, Value }, ...] }`
+
+### Remaining
+- [ ] Add dashboard card in the frontend (if applicable)
+- [ ] Test in-game after building the mod
