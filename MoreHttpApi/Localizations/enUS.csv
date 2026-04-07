@@ -4,7 +4,3 @@ LV.MHA.AutoStartDesc,"Automatically start the API server when loading the game.
 You do not need a HTTP Adapter building if you enable this option.",
 LV.MHA.AutoStartPort,"Auto-start Port",
 LV.MHA.AutoStartPortDesc,"The port used for auto-starting the API server.",
-LV.MHA.AllowNetwork,"Allow Network Access",
-LV.MHA.AllowNetworkDesc,"Opens a second port on all network interfaces so other devices on your LAN can reach the API. No admin privileges required.",
-LV.MHA.NetworkPort,"Network Port",
-LV.MHA.NetworkPortDesc,"The port exposed to your network. Access the API from other devices at http://YOUR_PC_IP:PORT/. Must be different from the local API port.",
