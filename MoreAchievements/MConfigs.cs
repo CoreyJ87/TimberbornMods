@@ -18,7 +18,11 @@ public class MoreAchievementsConfigs : BaseModdableTimberbornAttributeConfigurat
             .UseEntityTracker()
             .TryTrack<Wonder>()
             .TryTrack<Stockpile>()
-            .TryTrack<Manufactory>();
+            .TryTrack<Manufactory>()
+            .TryTrack<FloodableObject>()
+            .TryTrack<NumbercruncherSubmergeComponent>()
+            .TryTrack<WonderCompletionTracker>()
+        ;
     }
 
 }
