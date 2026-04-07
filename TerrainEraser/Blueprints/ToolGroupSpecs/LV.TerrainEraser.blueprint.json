@@ -1,0 +1,9 @@
+{
+    "CustomBottomBarElementSpec": {
+        "Id": "LV.TerrainEraser",
+        "Order": 15
+    },
+    "CustomRootElementSpec": {
+        "Location": "Left"
+    }
+}

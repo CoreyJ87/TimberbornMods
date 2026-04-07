@@ -1,0 +1,11 @@
+{
+    "Name": "Terrain Eraser",
+    "Version": "1.0.0",
+    "Id": "TerrainEraser",
+    "MinimumGameVersion": "1.0.0",
+    "Description": "Dev mode tool to quickly select and delete terrain blocks",
+    "RequiredMods": [
+        { "Id": "ModdableTimberborn", "MinimumVersion": "10.3.1" },
+        { "Id": "ModdableToolGroups" }
+    ]
+}
