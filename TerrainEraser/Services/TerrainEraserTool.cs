@@ -7,7 +7,8 @@ public class TerrainEraserTool(
     InputService inputService,
     DevModeManager devModeManager,
     DialogService dialogService,
-    DestructionService destructionService
+    DestructionService destructionService,
+    ITerrainService terrainService
 ) : ITool, IToolDescriptor, ILoadableSingleton, IInputProcessor
 {
 #nullable disable
@@ -18,6 +19,7 @@ public class TerrainEraserTool(
     {
         toolDescription = new ToolDescription.Builder(t.T("LV.TE.ToolName"))
             .AddSection(t.T("LV.TE.ToolDesc"))
+            .AddSection(t.T("LV.TE.ToolDescShift"))
             .Build();
     }
 
@@ -31,6 +33,7 @@ public class TerrainEraserTool(
 
     public void Exit()
     {
+        areaPicker.Reset();
         destructionService.UnhighlightDestructionEntities();
         cursorService.ResetCursor();
         inputService.RemoveInputProcessor(this);
@@ -43,9 +46,23 @@ public class TerrainEraserTool(
         return areaPicker.PickTerrainIntArea(PreviewCallback, ActionCallback, ShowNoneCallback);
     }
 
-    void PreviewCallback(IEnumerable<Vector3Int> terrainBlocks, Vector3Int start)
+    Vector3Int[] FilterBlocks(IEnumerable<Vector3Int> terrainBlocks)
     {
-        var blocks = terrainBlocks.ToArray();
+        bool shiftHeld = Keyboard.current?.shiftKey.isPressed == true;
+        if (shiftHeld)
+        {
+            return terrainBlocks
+                .Select(b => new Vector3Int(b.x, b.y, b.z + 1))
+                .Where(b => terrainService.Underground(b))
+                .ToArray();
+        }
+
+        return terrainBlocks.Where(b => terrainService.Underground(b)).ToArray();
+    }
+
+    void PreviewCallback(IEnumerable<Vector3Int> terrainBlocks, Ray ray)
+    {
+        var blocks = FilterBlocks(terrainBlocks);
         if (blocks.Length == 0)
         {
             destructionService.UnhighlightDestructionEntities();
@@ -56,9 +73,9 @@ public class TerrainEraserTool(
         destructionService.HighlightDestructionEntities(destroying);
     }
 
-    void ActionCallback(IEnumerable<Vector3Int> terrainBlocks, Vector3Int start)
+    void ActionCallback(IEnumerable<Vector3Int> terrainBlocks, Ray ray)
     {
-        var blocks = terrainBlocks.ToArray();
+        var blocks = FilterBlocks(terrainBlocks);
         if (blocks.Length == 0) return;
 
         var destroying = destructionService.QueryDestructingEntities(blocks);

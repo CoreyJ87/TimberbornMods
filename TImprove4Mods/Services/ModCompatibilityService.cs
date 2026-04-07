@@ -61,7 +61,8 @@ public class ModCompatibilityService
     {
         var enabledMods = modRepo.Mods
             .Where(ModPlayerPrefsHelper.IsModEnabled)
-            .ToDictionary(q => q.Manifest.Id);
+            .GroupBy(q => q.Manifest.Id)
+            .ToDictionary(q => q.Key, q => q.First());
 
         foreach (var mod in enabledMods.Values)
         {

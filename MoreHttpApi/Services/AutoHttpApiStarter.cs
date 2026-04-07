@@ -6,7 +6,7 @@ public class AutoHttpApiStarter(HttpApi api, MSettings s) : IPostLoadableSinglet
     
     public void PostLoad()
     {
-        if (!s.AutoStartApi.Value) { return; }
+        if (!s.AutoStartApi.Value || api.IsRunning) { return; }
 
         var port = (ushort)s.AutoStartPort.Value;
         api.SetPort(port);

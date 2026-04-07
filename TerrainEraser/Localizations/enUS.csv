@@ -1,6 +1,7 @@
 ID,Text,Comment
 LV.TE.ToolName,"Terrain Eraser",
 LV.TE.ToolDesc,"Select an area of terrain to instantly delete. Only available in Dev Mode.",
+LV.TE.ToolDescShift,"Hold Shift for surface-only mode (skips buried blocks).",
 LV.TE.Confirm,"Delete {0} terrain block(s)?",
 LV.TE.ConfirmWithBuildings,"Delete {0} terrain block(s) and {1} building(s)?",
 LV.TE.Delete,"Delete",
